@@ -105,6 +105,10 @@ function Ensure-Prop($obj, $name, $value) {
       $ekm = Ensure-Prop $s 'extraKnownMarketplaces' ([pscustomobject]@{})
       $cr = Ensure-Prop $ekm 'crowdreply' ([pscustomobject]@{ source = [pscustomobject]@{ source = 'github'; repo = $Repo } })
       if ($cr.PSObject.Properties.Name -contains 'autoUpdate') { $cr.autoUpdate = $true } else { $cr | Add-Member -NotePropertyName autoUpdate -NotePropertyValue $true }
+      $perm = Ensure-Prop $s 'permissions' ([pscustomobject]@{})
+      $allow = @(Ensure-Prop $perm 'allow' @())
+      $rule = 'Bash(git -C ~/crowdreply-context pull --ff-only --quiet)'
+      if ($allow -notcontains $rule) { $perm.allow = @($allow + $rule) }
       Write-Json $settingsPath $s
 
       $knownPath = Join-Path $ClaudeDir 'plugins\known_marketplaces.json'
@@ -116,7 +120,7 @@ function Ensure-Prop($obj, $name, $value) {
           Write-Json $knownPath $k
         }
       }
-      Ok 'plugin installed, auto-update on'
+      Ok 'plugin installed, auto-update on, live updates allowed'
     } catch {
       Note 'Plugin installed. Turn on auto-update in Claude Code: /plugin > Marketplaces > crowdreply'
     }

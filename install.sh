@@ -115,8 +115,9 @@ if command -v claude >/dev/null 2>&1; then
   claude plugin marketplace list 2>/dev/null | grep -q crowdreply || claude plugin marketplace add "$REPO" >/dev/null
   claude plugin install crowdreply@crowdreply >/dev/null 2>&1 || claude plugin update crowdreply@crowdreply >/dev/null 2>&1 || true
   json_set "$CLAUDE_DIR/settings.json" "d.setdefault('extraKnownMarketplaces',{}).setdefault('crowdreply',{'source':{'source':'github','repo':'$REPO'}})['autoUpdate']=True" \
+    && json_set "$CLAUDE_DIR/settings.json" "a=d.setdefault('permissions',{}).setdefault('allow',[]); r='Bash(git -C ~/crowdreply-context pull --ff-only --quiet)'; r in a or a.append(r)" \
     && json_set "$CLAUDE_DIR/plugins/known_marketplaces.json" "d.get('crowdreply',{}) and d['crowdreply'].update({'autoUpdate': True})" \
-    && ok "plugin installed, auto-update on" \
+    && ok "plugin installed, auto-update on, live updates allowed" \
     || note "plugin installed. Turn on auto-update in Claude Code: /plugin → Marketplaces → crowdreply"
 else
   note "Claude Code isn't installed. Install it, then run this command again:"
